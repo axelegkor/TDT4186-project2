@@ -5,10 +5,40 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 #define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
+
+// Function designed for chat between client and server.
+void func(int connfd)
+{
+    char buff[MAX];
+    int n;
+    // infinite loop for chat
+    for (;;) {
+        bzero(buff, MAX);
    
+        // read the message from client and copy it in buffer
+        read(connfd, buff, sizeof(buff));
+        // print buffer which contains the client contents
+        printf("From client: %s\t To client : ", buff);
+        bzero(buff, MAX);
+        n = 0;
+        // copy server message in the buffer
+        while ((buff[n++] = getchar()) != '\n')
+            ;
+   
+        // and send that buffer to client
+        write(connfd, buff, sizeof(buff));
+   
+        // if msg contains "Exit" then server exit and chat ended.
+        if (strncmp("exit", buff, 4) == 0) {
+            printf("Server Exit...\n");
+            break;
+        }
+    }
+}
 
 int main() {
     int sockfd, connfd, len;
@@ -30,9 +60,39 @@ int main() {
         servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
         servaddr.sin_port = htons(PORT);
 
-        char buffer[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &servaddr.sin_addr.s_addr, buffer, sizeof( buffer ));
-        printf( "address:%s\n", buffer );
-    }
+         if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+        printf("socket bind failed...\n");
+        exit(0);
+        }
+        else {
+            printf("Socket successfully binded..\n");
+            char buffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &servaddr.sin_addr, buffer, sizeof( buffer ));
+            //printf( "address:%s\n", buffer );
+
+            if ((listen(sockfd, 5)) != 0) {
+                printf("Listen failed...\n");
+                exit(0);
+            }
+            else {
+                printf("Server listening..\n");
+                len = sizeof(cli);
+            }
+        }
+        // Accept the data packet from client and verification
+        connfd = accept(sockfd, (SA*)&cli, &len);
+        if (connfd < 0) {
+            printf("server accept failed...\n");
+            exit(0);
+        }
+        else
+            printf("server accept the client...\n");
+    
+        // Function for chatting between client and server
+        func(connfd);
+    
+        // After chatting close the socket
+        close(sockfd);
+        }
     return 0;
 }
