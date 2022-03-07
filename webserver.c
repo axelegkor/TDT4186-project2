@@ -29,6 +29,10 @@ int main() {
         servaddr.sin_family = AF_INET;
         servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
         servaddr.sin_port = htons(PORT);
+
+        char buffer[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &servaddr.sin_addr.s_addr, buffer, sizeof( buffer ));
+        printf( "address:%s\n", buffer );
     }
     return 0;
 }
