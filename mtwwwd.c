@@ -9,6 +9,11 @@
 
 #define PORT 8000;
 
+void communication(int connection)
+{
+    
+}
+
 int main() {
     
     int mainSocket;
@@ -55,6 +60,8 @@ int main() {
     }
     printf("Connection %d was accepted!", descriptor_accepted);
 
-    exit(0);
+    communication(descriptor_accepted);
+
+    close(mainSocket);
 
 } 
