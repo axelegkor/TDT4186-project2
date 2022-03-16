@@ -2,9 +2,6 @@
 #include "sem.h"
 #include <pthread.h>
 #include <stdlib.h>
-#include <errno.h>
-
-
 
 typedef struct SEM 
 {
