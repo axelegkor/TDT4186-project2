@@ -12,7 +12,8 @@ typedef struct SEM
 } SEM; 
 
 
-SEM *sem_init(int initVal) {
+SEM *sem_init(int initVal) 
+{
     SEM *sem = malloc(sizeof(SEM));  // Struct SEM??
 
     if (sem == NULL)
@@ -30,16 +31,47 @@ SEM *sem_init(int initVal) {
     if (pthread_cond_init(&sem->condition_var, NULL) != 0)
         return pthread_mutex_destroy(&sem->mutex);
     
-    printf("cond: %d", &sem->condition_var);
+    printf("cond: %d\n", &sem->condition_var);
     
     return sem;
 }
 
+int sem_del(SEM *sem) 
+{
 
+}
+
+void P(SEM *sem) 
+{
+    pthread_mutex_lock(&sem->mutex);
+
+    printf("1 valuse before p: %d\n", sem->value);
+
+    while (sem->value < 1) {
+        pthread_cond_wait(&sem->condition_var, &sem->mutex);
+    }
+
+    pthread_cond_signal(&sem->condition_var);
+    sem->value--;
+    pthread_mutex_unlock(&sem->mutex);
+    
+    printf("2 value after p: %d\n", sem->value);
+}
+
+void V(SEM *sem)
+{
+
+}
 
 int main()
 {
-    sem_init(4);
+    SEM *sem = sem_init(4);
+    
+    P(sem);
+    P(sem);
+    P(sem);
+    P(sem);
+    P(sem);
 
     return 0;
 }
