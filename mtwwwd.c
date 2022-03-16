@@ -38,6 +38,8 @@ int main() {
         printf("Could not bind\n");
         exit(0);
     }
+    //bzero((char *) &serverAddress, sizeof(serverAddress));
+
 
     int listener;
     listen(mainSocket, 128);
@@ -59,6 +61,7 @@ int main() {
             exit(0);
         }
         bzero(buffer, sizeof(buffer));
+
 
         n = read(newSocket, buffer, sizeof(buffer) - 1);
         if (n == -1) {
