@@ -39,6 +39,8 @@ int main() {
     }
     printf("Socket was successfully bound!\n");
 
+    bzero(&serverAddress, sizeof(serverAddress));
+
     if (listen(mainSocket, 128) == -1){
         printf("Socket failed to listen\n");
         exit(0);
