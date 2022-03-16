@@ -6,55 +6,75 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/un.h>
+#include <arpa/inet.h>
 
-#define PORT 8000;
+#define PORT 8000
+#define MAXREQ (4096*1024)
+
+char buffer[MAXREQ], body[MAXREQ], msg[MAXREQ];
 
 int main() {
     
     int mainSocket;
 
-    mainSocket = socket(AF_INET, SOCK_STREAM, 0);
+    mainSocket = socket(PF_INET, SOCK_STREAM, 0);
     if (mainSocket == -1) {
         printf("Socket failed to be created\n");
         exit(0);
     }
     printf("Socket was successfully created!\n");
 
-    struct sockaddr_un my_addr, peer_addr;
-    socklen_t peer_addr_size;
+    struct sockaddr_in serverAddress;
 
-    memset(&my_addr, 0, sizeof(struct sockaddr_un));
-    
-    //my_addr.sun_family = AF_UNIX;
-    //strncpy(my_addr.sun_path, MY_SOCK_PATH, sizeof(my_addr.sun_path) - 1);
+    bzero(&serverAddress, sizeof(serverAddress));
 
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddress.sin_port = htons(PORT);
 
-    int binder;
-    binder = bind(mainSocket, (struct sockaddr *) &my_addr, sizeof(struct sockaddr_un));
-    if (binder == -1){
+    if (bind(mainSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1){
         printf("Socket failed to be bound\n");
         exit(0);
     }
     printf("Socket was successfully bound!\n");
 
-    int listener;
-    listener = listen(mainSocket, 128);
-    if (listener == -1){
+    if (listen(mainSocket, 128) == -1){
         printf("Socket failed to listen\n");
         exit(0);
     }
     printf("Socket was successfully set as passive (listening)!\n");
 
-    peer_addr_size = sizeof(struct sockaddr_un);
+    struct sockaddr_in clientAddress;
+    socklen_t clientLenght;
+    int newSocket;
+    int saved;
 
-    int descriptor_accepted;
-    descriptor_accepted = accept(mainSocket, (struct sockaddr *) &peer_addr, &peer_addr_size);
-    if (descriptor_accepted == -1){
-        printf("Failed to accept incoming connection\n");
-        exit(0);
+    while(1) {
+        clientLenght = sizeof(clientAddress);
+        newSocket = accept(mainSocket, (struct sockaddr *) &clientAddress, &clientLenght);
+        if (newSocket == -1) {
+            printf("Failed to accept incoming connection\n");
+            exit(0);
+        }
+        bzero(buffer, sizeof(buffer));
+        saved = read(newSocket, buffer, sizeof(buffer) - 1);
+        if (saved == -1) {
+            printf("Failed to read from socket");
+        }
+        snprintf (body, sizeof (body),
+        "<html>\n<body>\n <h1>Hello web browser</h1>\nYour request was\n <pre>%s</pre>\n </body>\n</html>\n", buffer);
+
+        snprintf (msg, sizeof (msg),
+        "HTTP/1.0 200 OK\n"
+        "Content-Type: text/html\n"
+        "Content-Length: %d\n\n%s"
+        , strlen (body), body);
+
+        saved = write(newSocket, msg, strlen(msg));
+        if (saved == -1) {
+            printf("Failed in writing to socket");
+        }
+        close(newSocket);
+
     }
-    printf("Connection %d was accepted!", descriptor_accepted);
-
-    close(mainSocket);
-
-} 
+}
