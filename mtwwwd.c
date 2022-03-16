@@ -14,7 +14,6 @@
 #define MAXREQ (4096*1024)
 
 char buffer[MAXREQ], body[MAXREQ], msg[MAXREQ];
-void error(const char *msg) { perror(msg); exit(1); }
 
 int main() {
 
