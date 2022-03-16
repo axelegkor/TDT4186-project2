@@ -2,6 +2,8 @@
 #include "sem.h"
 #include <pthread.h>
 #include <stdlib.h>
+#include <errno.h>
+
 
 
 typedef struct SEM 
@@ -60,7 +62,10 @@ void P(SEM *sem)
 
 void V(SEM *sem)
 {
-
+    pthread_mutex_lock(&sem->mutex);
+    pthread_cond_signal(&sem->condition_var);
+    sem->value++;
+    pthread_mutex_unlock(&sem->mutex);
 }
 
 int main()
@@ -70,6 +75,7 @@ int main()
     P(sem);
     P(sem);
     P(sem);
+    V(sem);
     P(sem);
     P(sem);
 
