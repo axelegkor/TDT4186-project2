@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #define PORT 8000
 #define MAXREQ (4096*1024)
