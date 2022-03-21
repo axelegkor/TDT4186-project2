@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
     FILE *fileOpner;
     int threads, bufferSlots, portnumber;
     struct sockaddr_in serverAddress;
+    int noe;
     
     if (argv[1]) {
         strcpy(www_path, argv[1]);
