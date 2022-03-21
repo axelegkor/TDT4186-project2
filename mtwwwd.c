@@ -20,25 +20,13 @@ FILE *fileOpner;
 int threads, bufferSlots, portnumber;
 char www_path[MAXREQ], path[1024];
 
-void * thread_function(int argc, char *argv[]) {
-    while(1) {
-        int file_descriptor = bb_get(bbuffer);
-
-        //We have a connection
-        if(file_descriptor != 0) {
-            handle_connection(file_descriptor);
-        }
-    }
-}
-
-void handle_connection(int *p_file_descriptor) {
-    int newSocket = *p_file_descriptor;
+void handle_connection(int fileDesc, int threadId) {
     int saved;
-    free(*p_file_descriptor);
+    printf("Thread id: %d", threadId);
 
     bzero(buffer, sizeof(buffer));
 
-    saved = read(newSocket, buffer, sizeof(buffer) - 1);
+    saved = read(fileDesc, buffer, sizeof(buffer) - 1);
     if (saved == -1) {
         printf("Failed to read from socket");
     }
@@ -76,18 +64,28 @@ void handle_connection(int *p_file_descriptor) {
     "Content-Length: %d\n\n%s"
     , strlen (body), body);
 
-    saved = write(newSocket, msg, strlen(msg));
+    saved = write(fileDesc, msg, strlen(msg));
     if (saved == -1) {
         printf("Failed in writing to socket");
     }
-    close(newSocket);
+    close(fileDesc);
+}
+
+void * thread_function(int *threadId) {
+    while(1) {
+        int file_descriptor = bb_get(bbuffer);
+        //We have a connection
+        if(file_descriptor != 0) {
+            handle_connection(file_descriptor, threadId);
+        }
+    }
 }
 
 int main(int argc, char *argv[]) {
     
     bbuffer = bb_init(THREAD_POOL_SIZE);
     for(int i = 0;i< THREAD_POOL_SIZE;i++) {
-        pthread_create(&thread_pool[i], NULL, thread_function, NULL);
+        pthread_create(&thread_pool[i], NULL, thread_function, (void *)i);
     }
 
     int mainSocket;

@@ -25,8 +25,9 @@ BNDBUF *bb_init(unsigned int size)
     bndbuf->nextout = 0;
     bndbuf->empty = sem_init(size);
     bndbuf->full = sem_init(0);
-    if (pthread_mutex_init(&bndbuf->mutex, NULL) != 0)
-        free(bndbuf);
+    pthread_mutex_init(&bndbuf->mutex, NULL);
+
+    return bndbuf;
 }
 
 void bb_del(BNDBUF *bb)
