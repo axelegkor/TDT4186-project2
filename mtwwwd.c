@@ -11,9 +11,7 @@
 #include "bbuffer.h"
 
 #define MAXREQ (4096*1024)
-#define THREAD_POOL_SIZE 20
 
-pthread_t thread_pool[THREAD_POOL_SIZE];
 BNDBUF *bbuffer;
 char buffer[MAXREQ], body[MAXREQ], msg[MAXREQ];
 FILE *fileOpner;
@@ -83,11 +81,6 @@ void * thread_function(int *threadId) {
 
 int main(int argc, char *argv[]) {
     
-    bbuffer = bb_init(THREAD_POOL_SIZE);
-    for(int i = 0;i< THREAD_POOL_SIZE;i++) {
-        pthread_create(&thread_pool[i], NULL, thread_function, (void *)i);
-    }
-
     int mainSocket;
     struct sockaddr_in serverAddress;
     
@@ -109,9 +102,15 @@ int main(int argc, char *argv[]) {
         printf("Threds: %d\n", threads);
 
     }
+
     bufferSlots = atoi(argv[4]);
     printf("Bufferslots: %d\n", bufferSlots);
 
+    pthread_t thread_pool[threads];
+    bbuffer = bb_init(bufferSlots);
+    for(int i = 0;i< threads;i++) {
+        pthread_create(&thread_pool[i], NULL, thread_function, (void *)i);
+    }
 
     mainSocket = socket(PF_INET, SOCK_STREAM, 0);
     if (mainSocket == -1) {
@@ -119,6 +118,12 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
     printf("The socket was successfully created!\n");
+    
+    const int one = 1;
+    if (setsockopt(mainSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one))) < 0) {
+        printf("Failed to reuse port");
+        exit(0);
+    }
 
     bzero(&serverAddress, sizeof(serverAddress));
 
