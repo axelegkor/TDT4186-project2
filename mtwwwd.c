@@ -85,6 +85,77 @@ void handle_connection(int *p_file_descriptor) {
 
 int main(int argc, char *argv[]) {
     
-    BNDBUF *bbuffer = bb_init(20);
-    bb_get(bbuffer);
+    bbuffer = bb_init(THREAD_POOL_SIZE);
+    for(int i = 0;i< THREAD_POOL_SIZE;i++) {
+        pthread_create(&thread_pool[i], NULL, thread_function, NULL);
+    }
+
+    int mainSocket;
+    struct sockaddr_in serverAddress;
+    
+    if (argv[1]) {
+        strcpy(www_path, argv[1]);
+        printf("Serving the path: %s\n", www_path);
+    }
+    else {
+        //printf("Did not find the www_path.\n");
+        exit(0);
+    } 
+    if (argv[2]) {
+        portnumber = atoi(argv[2]);
+        printf("Portnumber: %d\n", portnumber);
+
+    }
+    if (argv[3]) {
+        threads = atoi(argv[3]);
+        printf("Threds: %d\n", threads);
+
+    }
+    bufferSlots = atoi(argv[4]);
+    printf("Bufferslots: %d\n", bufferSlots);
+
+
+    mainSocket = socket(PF_INET, SOCK_STREAM, 0);
+    if (mainSocket == -1) {
+        printf("Socket failed to be created\n");
+        exit(0);
+    }
+    printf("The socket was successfully created!\n");
+
+    bzero(&serverAddress, sizeof(serverAddress));
+
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddress.sin_port = htons(portnumber);
+
+    if (bind(mainSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1){
+        printf("Socket failed to be bound\n");
+        exit(0);
+    }
+    printf("Socket was successfully bound!\n");
+
+    // bzero(&serverAddress, sizeof(serverAddress));
+
+    if (listen(mainSocket, 128) == -1){
+        printf("Socket failed to listen\n");
+        exit(0);
+    }
+    printf("Socket was successfully set as passive (listening)!\n");
+
+    struct sockaddr_in clientAddress;
+    socklen_t clientLenght;
+    int newSocket;
+
+    while(1) {
+        clientLenght = sizeof(clientAddress);
+        newSocket = accept(mainSocket, (struct sockaddr *) &clientAddress, &clientLenght);
+        if (newSocket == -1) {
+            printf("Failed to accept incoming connection\n");
+            exit(0);
+        }
+
+        printf("Connection was accepted.\n");
+        bb_add(bbuffer, newSocket);
+    }
+    return 0;
 }
