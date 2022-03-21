@@ -31,15 +31,15 @@ void bb_del(BNDBUF *bb)
 {
     if (pthread_mutex_destroy(&bb->mutex) == 0)
     {
-        printf("Mutex destroyed");
+        //printf("Mutex destroyed");
     }
     if (sem_del(bb->empty) == 0)
     {
-        prinft("Empty semaphore destroyed");
+        //prinft("Empty semaphore destroyed");
     }
     if (sem_del(bb->full) == 0)
     {
-        prinft("Full semaphore destroyed");
+        //prinft("Full semaphore destroyed");
     }
     free(bb);
 }
