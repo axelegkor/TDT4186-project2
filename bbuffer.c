@@ -2,6 +2,8 @@
 #include "bbuffer.h"
 #include "sem.h"
 #include <pthread.h>
+#include <stdlib.h>
+
 
 typedef struct BNDBUF
 {
