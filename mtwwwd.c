@@ -20,7 +20,7 @@ char www_path[MAXREQ], path[1024];
 
 void handle_connection(int fileDesc, int threadId) {
     int saved;
-    printf("Thread id: %d", threadId);
+    printf("Thread id: %d\n", threadId);
 
     bzero(buffer, sizeof(buffer));
 
