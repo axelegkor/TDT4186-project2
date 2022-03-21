@@ -77,3 +77,4 @@ void V(SEM *sem)
     sem->value++;
     pthread_mutex_unlock(&sem->mutex);
 }
+

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "bbuffer.h"
-#include "sem.c"
+#include "sem.h"
 #include <pthread.h>
 
 typedef struct BNDBUF

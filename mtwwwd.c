@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "sem.h"
-#include "bbuffer.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -10,7 +9,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "bbuffer.h"
-#include "bbuffer.c"
 
 #define MAXREQ (4096*1024)
 #define THREAD_POOL_SIZE 20
@@ -18,6 +16,9 @@
 pthread_t thread_pool[THREAD_POOL_SIZE];
 BNDBUF *bbuffer;
 char buffer[MAXREQ], body[MAXREQ], msg[MAXREQ];
+FILE *fileOpner;
+int threads, bufferSlots, portnumber;
+char www_path[MAXREQ], path[1024];
 
 void * thread_function(int argc, char *argv[]) {
     while(1) {
@@ -25,135 +26,65 @@ void * thread_function(int argc, char *argv[]) {
 
         //We have a connection
         if(file_descriptor != 0) {
-            handle_connection(argc, argv);
+            handle_connection(file_descriptor);
         }
     }
 }
 
-void handle_connection(int argc, char *argv[]) {
-    int mainSocket;
-    char www_path[MAXREQ], path[1024];
-    FILE *fileOpner;
-    int threads, bufferSlots, portnumber;
-    struct sockaddr_in serverAddress;
-    
-    if (argv[1]) {
-        strcpy(www_path, argv[1]);
-        printf("Serving the path: %s\n", www_path);
+void handle_connection(int *p_file_descriptor) {
+    int newSocket = *p_file_descriptor;
+    int saved;
+    free(*p_file_descriptor);
+
+    bzero(buffer, sizeof(buffer));
+
+    saved = read(newSocket, buffer, sizeof(buffer) - 1);
+    if (saved == -1) {
+        printf("Failed to read from socket");
     }
-    else {
-        //printf("Did not find the www_path.\n");
-        exit(0);
-    } 
-    if (argv[2]) {
-        portnumber = atoi(argv[2]);
-        printf("Portnumber: %d\n", portnumber);
 
+    // Finding the right path
+    strcpy(path, www_path);
+    strtok(buffer, " ");
+    strcat(path, strtok(NULL, " "));
+
+    fileOpner = fopen(path, "r");
+    printf("The finale path: %s\n", path);
+
+    if (fileOpner == NULL) 
+            fileOpner = fopen("404page.html", "r");
+
+    if (fileOpner != NULL) {
+    size_t newLen = fread(body, sizeof(char), MAXREQ, fileOpner);
+    if ( ferror( fileOpner ) != 0 ) {
+        fputs("Error reading file", stderr);
+    } else {
+        body[newLen++] = '\0'; /* Just to be safe. */
     }
-    if (argv[3]) {
-        threads = atoi(argv[3]);
-        printf("Threds: %d\n", threads);
-
+    fclose(fileOpner);
     }
-    bufferSlots = atoi(argv[4]);
-    printf("Bufferslots: %d\n", bufferSlots);
+    // if (s != NULL) {
+    //     path = malloc(strlen(www_path) + strlen(s) + 1);
+    //     strcpy(path, www_path);
+    //     strcpy(path, s);
+    // }
+    // read_file(path, body);
 
+    snprintf (msg, sizeof (msg),
+    "HTTP/1.0 200 OK\n"
+    "Content-Type: text/html\n"
+    "Content-Length: %d\n\n%s"
+    , strlen (body), body);
 
-    mainSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (mainSocket == -1) {
-        printf("Socket failed to be created\n");
-        exit(0);
+    saved = write(newSocket, msg, strlen(msg));
+    if (saved == -1) {
+        printf("Failed in writing to socket");
     }
-    printf("The socket was successfully created!\n");
-
-    bzero(&serverAddress, sizeof(serverAddress));
-
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverAddress.sin_port = htons(portnumber);
-
-    if (bind(mainSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1){
-        printf("Socket failed to be bound\n");
-        exit(0);
-    }
-    printf("Socket was successfully bound!\n");
-
-    // bzero(&serverAddress, sizeof(serverAddress));
-
-    if (listen(mainSocket, 128) == -1){
-        printf("Socket failed to listen\n");
-        exit(0);
-    }
-    printf("Socket was successfully set as passive (listening)!\n");
-
-    struct sockaddr_in clientAddress;
-    socklen_t clientLenght;
-    int newSocket, saved;
-
-    while(1) {
-        clientLenght = sizeof(clientAddress);
-        newSocket = accept(mainSocket, (struct sockaddr *) &clientAddress, &clientLenght);
-        if (newSocket == -1) {
-            printf("Failed to accept incoming connection\n");
-            exit(0);
-        }
-
-        printf("Connection was accepted.\n");
-        bzero(buffer, sizeof(buffer));
-
-        saved = read(newSocket, buffer, sizeof(buffer) - 1);
-        if (saved == -1) {
-            printf("Failed to read from socket");
-        }
-
-        // Finding the right path
-        strcpy(path, www_path);
-        strtok(buffer, " ");
-        strcat(path, strtok(NULL, " "));
-
-        fileOpner = fopen(path, "r");
-        printf("The finale path: %s\n", path);
-
-        if (fileOpner == NULL) 
-             fileOpner = fopen("404page.html", "r");
-
-        if (fileOpner != NULL) {
-        size_t newLen = fread(body, sizeof(char), MAXREQ, fileOpner);
-        if ( ferror( fileOpner ) != 0 ) {
-            fputs("Error reading file", stderr);
-        } else {
-            body[newLen++] = '\0'; /* Just to be safe. */
-        }
-        fclose(fileOpner);
-        }
-        // if (s != NULL) {
-        //     path = malloc(strlen(www_path) + strlen(s) + 1);
-        //     strcpy(path, www_path);
-        //     strcpy(path, s);
-        // }
-        // read_file(path, body);
-
-        snprintf (msg, sizeof (msg),
-        "HTTP/1.0 200 OK\n"
-        "Content-Type: text/html\n"
-        "Content-Length: %d\n\n%s"
-        , strlen (body), body);
-
-        saved = write(newSocket, msg, strlen(msg));
-        if (saved == -1) {
-            printf("Failed in writing to socket");
-        }
-        close(newSocket);
-
-    }
+    close(newSocket);
 }
 
 int main(int argc, char *argv[]) {
     
-    bbuffer = bb_init(THREAD_POOL_SIZE);
-    for(int i = 0;i< THREAD_POOL_SIZE;i++) {
-        pthread_create(&thread_pool[i], NULL, thread_function(argc, argv), NULL);
-    }
-
-    return 0;
+    BNDBUF *bbuffer = bb_init(20);
+    bb_get(bbuffer);
 }
