@@ -77,15 +77,3 @@ void V(SEM *sem)
     sem->value++;
     pthread_mutex_unlock(&sem->mutex);
 }
-
-int main()
-{
-    SEM *sem = sem_init(5);
-    
-    P(sem);
-    // P(sem);
-
-    printf("sem_del: %d", sem_del(sem));
-
-    return 0;
-}
