@@ -8,19 +8,34 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <pthread.h>
+#include "bbuffer.h"
+#include "bbuffer.c"
 
 #define MAXREQ (4096*1024)
+#define THREAD_POOL_SIZE 20
 
+pthread_t thread_pool[THREAD_POOL_SIZE];
+BNDBUF *bbuffer;
 char buffer[MAXREQ], body[MAXREQ], msg[MAXREQ];
 
-int main(int argc, char *argv[]) {
-    
+void * thread_function(int argc, char *argv[]) {
+    while(1) {
+        int file_descriptor = bb_get(bbuffer);
+
+        //We have a connection
+        if(file_descriptor != 0) {
+            handle_connection(argc, argv);
+        }
+    }
+}
+
+void handle_connection(int argc, char *argv[]) {
     int mainSocket;
     char www_path[MAXREQ], path[1024];
     FILE *fileOpner;
     int threads, bufferSlots, portnumber;
     struct sockaddr_in serverAddress;
-    int noe;
     
     if (argv[1]) {
         strcpy(www_path, argv[1]);
@@ -82,6 +97,7 @@ int main(int argc, char *argv[]) {
             printf("Failed to accept incoming connection\n");
             exit(0);
         }
+
         printf("Connection was accepted.\n");
         bzero(buffer, sizeof(buffer));
 
@@ -130,4 +146,14 @@ int main(int argc, char *argv[]) {
         close(newSocket);
 
     }
+}
+
+int main(int argc, char *argv[]) {
+    
+    bbuffer = bb_init(THREAD_POOL_SIZE);
+    for(int i = 0;i< THREAD_POOL_SIZE;i++) {
+        pthread_create(&thread_pool[i], NULL, thread_function(argc, argv), NULL);
+    }
+
+    return 0;
 }
