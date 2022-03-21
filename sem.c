@@ -1,91 +1,88 @@
-#include <stdio.h>
 #include "sem.h"
-#include <pthread.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <stdio.h>
 
-typedef struct SEM 
-{
-    pthread_mutex_t mutex;
-    pthread_cond_t condition_var;
-    int value; // votile int??
-} SEM; 
+typedef struct SEM {
+    int counter;
+    pthread_mutex_t mut;
+    pthread_cond_t cond;
+} SEM;
 
 
-SEM *sem_init(int initVal) 
-{
-    SEM *sem = malloc(sizeof(struct SEM));  // Struct SEM??
 
-    if (sem == NULL)
+SEM *sem_init(int initVal) {
+    int n;
+    SEM *semaphore = malloc(sizeof(SEM));
+
+    semaphore->counter = initVal;
+
+    semaphore->mut = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+    semaphore->cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
+
+    n = pthread_mutex_init(&semaphore->mut, NULL);
+    
+    if(n != 0) {
+        free(semaphore);
         return NULL;
+    }
+    n = pthread_cond_init(&semaphore->cond, NULL);
 
-    sem->value = initVal;
-    printf("value: %d\n", initVal);
-    printf("sem: %d\n", sem);
-
-    if (pthread_mutex_init(&sem->mutex, NULL) != 0)
-        free(sem);
-    
-    printf("mutex: %d\n", &sem->mutex);
-
-    if (pthread_cond_init(&sem->condition_var, NULL) != 0)
-        return pthread_mutex_destroy(&sem->mutex);
-    
-    printf("cond: %d\n\n", &sem->condition_var);
-    
-    return sem;
-}
-
-int sem_del(SEM *sem) 
-{    
-    if (pthread_mutex_destroy(&sem->mutex) == 0) {
-        if (pthread_cond_destroy(&sem->condition_var) == 0){
-            free(sem);
-            sem->value = 0;
-
-            printf("Sem has been destoryed\n");
-            printf("value: %d\n", sem->value);
-            return 0;
-        }
-        return -1;
-    } 
-    return -1;
-}
-
-void P(SEM *sem) 
-{
-    pthread_mutex_lock(&sem->mutex);
-
-    printf("valuse before p: %d\n", sem->value);
-
-    while (sem->value < 1) {
-        pthread_cond_wait(&sem->condition_var, &sem->mutex);
+    if(n != 0){
+        pthread_mutex_destroy(&semaphore->mut);
+        free(semaphore);
+        return NULL;
     }
 
-    pthread_cond_signal(&sem->condition_var);
-    sem->value--;
-    pthread_mutex_unlock(&sem->mutex);
-    
-    printf("value after p: %d\n", sem->value);
-    printf("mutex after p: %d\n", sem->mutex);
-    printf("cond var after p: %d\n\n", sem->condition_var);
+    return semaphore;
 }
 
-void V(SEM *sem)
-{
-    pthread_mutex_lock(&sem->mutex);
-    pthread_cond_signal(&sem->condition_var);
-    sem->value++;
-    pthread_mutex_unlock(&sem->mutex);
+int sem_del(SEM *sem){
+    int n;
+    n = pthread_mutex_destroy(&sem->mut);
+    free(sem);
+    return n;
 }
 
-int main()
-{
-    SEM *sem = sem_init(5);
-    
-    P(sem);
-    // P(sem);
 
-    printf("sem_del: %d", sem_del(sem));
 
-    return 0;
+void P(SEM *sem){
+    /* P (wait) operation.
+    * 
+    * Attempts to decrement the semaphore value by 1. If the semaphore value 
+    * is 0, the operation blocks until a V operation increments the value and 
+    * the P operation succeeds.
+    *
+    * Parameters:
+    *
+    * sem           handle of the semaphore to decrement
+    */
+    pthread_mutex_lock(&sem->mut);
+    while(sem->counter == 0){
+        pthread_cond_wait(&sem->cond, &sem->mut);
+    }
+
+    sem->counter --;
+
+    pthread_mutex_unlock(&sem->mut);
+    return;
+}
+
+void V(SEM *sem){
+    /* V (signal) operation.
+    *
+    * Increments the semaphore value by 1 and notifies P operations that are 
+    * blocked on the semaphore of the change.
+    *
+    * Parameters:
+    *
+    * sem           handle of the semaphore to increment
+    */
+    pthread_mutex_lock(&sem->mut);
+    sem->counter ++;
+    if(sem->counter == 1 ) {
+        pthread_cond_signal(&sem->cond);
+    }
+    pthread_mutex_unlock(&sem->mut);
+    return;
 }
