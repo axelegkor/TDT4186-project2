@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
     printf("The socket was successfully created!\n");
     
     const int one = 1;
-    if (setsockopt(mainSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one))) < 0) {
+    if ((setsockopt(mainSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one))) < 0) {
         printf("Failed to reuse port");
         exit(0);
     }
