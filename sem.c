@@ -49,6 +49,7 @@ int sem_del(SEM *sem)
         return -1;
     } 
     return -1;
+    return 1;
 }
 
 void P(SEM *sem) 
