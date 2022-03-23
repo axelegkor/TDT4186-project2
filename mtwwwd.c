@@ -31,8 +31,10 @@ void handle_connection(int fileDesc, int threadId) {
 
     // Finding the right path
     strcpy(path, www_path);
-    strtok(buffer, " ");
-    strcat(path, strtok(NULL, " "));
+    char * s;
+    s = strtok(buffer, " ");
+    s = strtok(NULL, " ");
+    strcat(path, s);
 
     fileOpner = fopen(path, "r");
     printf("The finale path: %s\n", path);
@@ -40,13 +42,12 @@ void handle_connection(int fileDesc, int threadId) {
     if (fileOpner == NULL) {
         fileOpner = fopen("404page.html", "r");
     }
-    else {
-        long length = fread(body, sizeof(char), MAXREQ, fileOpner);
-
+    if (fileOpner != NULL) {
+        size_t length = fread(body, sizeof(char), MAXREQ, fileOpner);
         if (ferror(fileOpner) != 0) {
-            fputs("An error occured while reading file.\n", stderr);
+            fputs("An error occured when reading file\n", stderr);
         } else {
-            body[length++] = '\0'; 
+            body[length++] = '\0';
         }
     }
     fclose(fileOpner);
