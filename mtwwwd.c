@@ -37,24 +37,19 @@ void handle_connection(int fileDesc, int threadId) {
     fileOpner = fopen(path, "r");
     printf("The finale path: %s\n", path);
 
-    if (fileOpner == NULL) 
-            fileOpner = fopen("404page.html", "r");
+    if (fileOpner == NULL) {
+        fileOpner = fopen("404page.html", "r");
+    }
+    else {
+        long length = fread(body, sizeof(char), MAXREQ, fileOpner);
 
-    if (fileOpner != NULL) {
-    size_t newLen = fread(body, sizeof(char), MAXREQ, fileOpner);
-    if ( ferror( fileOpner ) != 0 ) {
-        fputs("Error reading file", stderr);
-    } else {
-        body[newLen++] = '\0'; /* Just to be safe. */
+        if (ferror(fileOpner) != 0) {
+            fputs("An error occured while reading file.\n", stderr);
+        } else {
+            body[length++] = '\0'; 
+        }
     }
     fclose(fileOpner);
-    }
-    // if (s != NULL) {
-    //     path = malloc(strlen(www_path) + strlen(s) + 1);
-    //     strcpy(path, www_path);
-    //     strcpy(path, s);
-    // }
-    // read_file(path, body);
 
     snprintf (msg, sizeof (msg),
     "HTTP/1.0 200 OK\n"
