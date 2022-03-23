@@ -78,7 +78,7 @@ void * thread_function(int *threadId) {
 int main(int argc, char *argv[]) {
     
     int mainSocket;
-    struct sockaddr_in serverAddress;
+    struct sockaddr_in6 serverAddress;
     
     if (argv[1]) {
         strcpy(www_path, argv[1]);
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         pthread_create(&thread_pool[i], NULL, thread_function, (void *)i);
     }
 
-    mainSocket = socket(PF_INET, SOCK_STREAM, 0);
+    mainSocket = socket(AF_INET6, SOCK_STREAM, 0);
     if (mainSocket == -1) {
         printf("Socket failed to be created\n");
         exit(0);
@@ -123,9 +123,9 @@ int main(int argc, char *argv[]) {
 
     bzero(&serverAddress, sizeof(serverAddress));
 
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverAddress.sin_port = htons(portnumber);
+    serverAddress.sin6_family = AF_INET6;
+    serverAddress.sin6_addr = in6addr_any; // htonl(INADDR_ANY);
+    serverAddress.sin6_port = htons(portnumber);
 
     if (bind(mainSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1){
         printf("Socket failed to be bound\n");
