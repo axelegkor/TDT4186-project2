@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include "bbuffer.h"
-#include "sem.c"
+#include "sem.h"
 #include <pthread.h>
+#include <stdlib.h>
+
 
 typedef struct BNDBUF
 {
@@ -23,23 +25,24 @@ BNDBUF *bb_init(unsigned int size)
     bndbuf->nextout = 0;
     bndbuf->empty = sem_init(size);
     bndbuf->full = sem_init(0);
-    if (pthread_mutex_init(&bndbuf->mutex, NULL) != 0)
-        free(bndbuf);
+    pthread_mutex_init(&bndbuf->mutex, NULL);
+
+    return bndbuf;
 }
 
 void bb_del(BNDBUF *bb)
 {
     if (pthread_mutex_destroy(&bb->mutex) == 0)
     {
-        printf("Mutex destroyed");
+        //printf("Mutex destroyed");
     }
     if (sem_del(bb->empty) == 0)
     {
-        prinft("Empty semaphore destroyed");
+        //prinft("Empty semaphore destroyed");
     }
     if (sem_del(bb->full) == 0)
     {
-        prinft("Full semaphore destroyed");
+        //prinft("Full semaphore destroyed");
     }
     free(bb);
 }
