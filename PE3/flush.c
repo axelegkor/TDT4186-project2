@@ -3,8 +3,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include<sys/wait.h>
-#include <readline/readline.h>
+#include <termios.h> 
+#include <signal.h> 
 
+int current_pid;
+int counter = 0;
 
 void print_shell() 
 {
@@ -17,10 +20,10 @@ void print_shell()
 }
 
 void input_usr(char* input) 
-{
+{   
     strtok(input, " ");
     printf("%s", input);
-}
+}  
 
 void syscmd_exec(char** command) 
 {
@@ -32,7 +35,20 @@ void syscmd_exec(char** command)
     } else if (pid == 0) {
         if (execvp(command[0], command) < 0) {
             printf("The command coudl not be executed.\n");
-        } exit(0);
+        } else {
+            printf("executed");
+            int status;
+
+            if(waitpid(pid, &status, 0) == -1) {
+                printf("Waitpid failed");
+                exit(EXIT_FAILURE);
+            }
+            if ( WIFEXITED(status) ) {
+                int es = WEXITSTATUS(status);
+                printf("Exit status was %d\n", es);
+            }
+        }
+        exit(0);
     } else {
         wait(NULL);
         return;
