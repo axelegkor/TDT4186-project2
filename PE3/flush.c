@@ -27,7 +27,7 @@ void handle_input(char input[256])
 { 
     int i = 0;
     char *usr_input = strtok(input, " ");
-    char *data[2];
+    char *data[2]; // Contains the input from the user, data[0]: commands and data[1]: arguments
 
     while (usr_input)
     {
@@ -48,7 +48,7 @@ void handle_input(char input[256])
 
         printf("\nDir tastet inn: %s", data[1]);
         printf("rikitg\n");
-        chdir(data[1]);
+        chdir(data[1]); // Changes the dir to the one stored in data[1]
     }
 
     // for (i = 0; i < 2; i++)
