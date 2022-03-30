@@ -43,9 +43,22 @@ void syscmd_exec(char **command)
     }
     else if (pid == 0)
     {
+        printf("child");
         if (execvp(command[0], command) < 0)
         {
             printf("The command coudl not be executed.\n");
+        }
+        else {
+           int status;
+
+            if(waitpid(pid, &status, 0) == -1) {
+                printf("Waitpid failed");
+                exit(EXIT_FAILURE);
+            }
+            if ( WIFEXITED(status) ) {
+                int es = WEXITSTATUS(status);
+                printf("Exit status was %d\n", es);
+            }
         }
         exit(0);
     }
