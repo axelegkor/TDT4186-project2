@@ -29,27 +29,32 @@ void handle_input(char input[256])
     char *usr_input = strtok(input, " ");
     char *data[2];
 
-    printf("før while: %s, %d\n", data[1], 1);
-
     while (usr_input)
     {
         data[i++] = usr_input;
         usr_input = strtok(NULL, " ");
     }
 
-    printf("etter while: %s, %d\n", data[1], 1);
-
-    for (i = 0; i < 2; i++)
-    {
-        printf("%s, %d\n", data[i], i);
-    }
-
     if (strcmp(data[0], "cd") == 0)
     {
+        if (strlen(data[1]) == 0)
+        {
+            printf("The path is empty.\n");
+            return;
+        }
+
+        // Handles if the path contains "\n"
+        strtok(data[1], "\n");   // Cleaner way to handle this: https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
+
         printf("\nDir tastet inn: %s", data[1]);
         printf("rikitg\n");
         chdir(data[1]);
     }
+
+    // for (i = 0; i < 2; i++)
+    // {
+    //     printf("%s, %d\n", data[i], i);
+    // }
 }
 
 void syscmd_exec(char **command)
