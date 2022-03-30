@@ -14,7 +14,7 @@ void print_shell()
            "***********************\n\n");
 }
 
-void handle_input(char input[256])
+void handle_input(char input[256], char* strings[], size_t size)
 { 
     int i = 0;
     char *usr_input = strtok(input, " ");
@@ -40,6 +40,13 @@ void handle_input(char input[256])
         printf("\nDir tastet inn: %s", data[1]);
         printf("rikitg\n");
         chdir(data[1]); // Changes the dir to the one stored in data[1]
+    }
+
+    if (size >= 3)
+    {
+        strings[0] = data[0];
+        strings[1] = data[1];
+        strings[3] = NULL;
     }
 }
 
