@@ -16,10 +16,9 @@ void print_shell()
         "***********************");
 }
 
-void input_usr(char* input) 
+void handle_input(char* input) 
 {
     strtok(input, " ");
-    printf("%s", input);
 }
 
 void syscmd_exec(char** command) 
@@ -46,13 +45,10 @@ int main()
     getcwd(path, 200);
     char input_str[1000];
     
-    printf("\n%s: ", path);
-    scanf(":", input_str);
+    printf("%s: ", path);
+    scanf("%s", &input_str);
 
-    // print_shell();
-    input_usr(input_str);
-    // scanf("\nWhat do you want to do? ");
-    
+    printf("\ninput var: %s", input_str);    
     
     return 0;
 }
