@@ -13,12 +13,24 @@ void print_shell()
     printf("\n\n\n****The famous little unix shell****");
     printf("\n\n\t-USE AT YOUR OWN RISK-");
     printf("\n\n\n*******************"
-        "***********************");
+        "***********************\n\n");
 }
 
-void handle_input(char* input) 
-{
-    strtok(input, " ");
+void handle_input(char input[256]) 
+{  // char buff[] = "kim-tae-yeon";
+
+    int i = 0;
+    char *usr_input = strtok(input, " ");
+    char *data[2];
+
+    while (usr_input) {
+        data[i++] = usr_input;
+        usr_input = strtok(NULL, " ");
+    }
+
+    for (i = 0; i < 2; i++) {
+        printf("%s\n", data[i]);
+    }
 }
 
 void syscmd_exec(char** command) 
@@ -43,16 +55,15 @@ int main()
     // Finds the current current working directory
     char path[200];
     getcwd(path, 200);
-    char input_str[1000];
 
-    print_shell();
+    char input_str[256];
+
+    // print_shell();
     
     printf("%s: ", path);
-    scanf("%s", &input_str);
+    fgets(input_str, 256, stdin);
 
-    while (1) {
-        // printf("\ninput var: %s", input_str);    
-    }
+    handle_input(input_str);
 
     return 0;
 }
