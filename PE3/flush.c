@@ -15,8 +15,7 @@ void print_shell()
 }
 
 void handle_input(char input[256])
-{ // char buff[] = "kim-tae-yeon";
-
+{ 
     int i = 0;
     char *usr_input = strtok(input, " ");
     char *data[2];
