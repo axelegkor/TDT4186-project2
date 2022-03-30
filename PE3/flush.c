@@ -44,6 +44,8 @@ int main()
     char path[200];
     getcwd(path, 200);
     char input_str[1000];
+
+    print_shell();
     
     printf("%s: ", path);
     scanf("%s", &input_str);
