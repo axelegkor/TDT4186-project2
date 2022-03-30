@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 
+
 void print_shell()
 {
     printf("\n\n\n******************"
@@ -14,11 +15,21 @@ void print_shell()
            "***********************\n\n");
 }
 
+void print_dir() 
+{
+    // Finds the current current working directory
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
+    printf("%s", cwd);
+}
+
 void handle_input(char input[256])
 { 
     int i = 0;
     char *usr_input = strtok(input, " ");
     char *data[2];
+
+    printf("før while: %s, %d\n", data[1], 1);
 
     while (usr_input)
     {
@@ -26,9 +37,18 @@ void handle_input(char input[256])
         usr_input = strtok(NULL, " ");
     }
 
+    printf("etter while: %s, %d\n", data[1], 1);
+
     for (i = 0; i < 2; i++)
     {
-        printf("%s\n", data[i]);
+        printf("%s, %d\n", data[i], i);
+    }
+
+    if (strcmp(data[0], "cd") == 0)
+    {
+        printf("\nDir tastet inn: %s", data[1]);
+        printf("rikitg\n");
+        chdir(data[1]);
     }
 }
 
@@ -58,18 +78,17 @@ void syscmd_exec(char **command)
 
 int main()
 {
-    // Finds the current current working directory
-    char path[200];
-    getcwd(path, 200);
-
     char input_str[256];
-
     // print_shell();
 
-    printf("%s: ", path);
-    fgets(input_str, 256, stdin);
+    while (1)
+    {
+        print_dir();
+        printf(": ");
+        fgets(input_str, 256, stdin);
 
-    handle_input(input_str);
+        handle_input(input_str);
+    }
 
     return 0;
 }
