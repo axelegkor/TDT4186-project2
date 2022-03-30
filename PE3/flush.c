@@ -50,7 +50,9 @@ int main()
     printf("%s: ", path);
     scanf("%s", &input_str);
 
-    printf("\ninput var: %s", input_str);    
-    
+    while (1) {
+        // printf("\ninput var: %s", input_str);    
+    }
+
     return 0;
 }
