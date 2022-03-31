@@ -14,6 +14,15 @@ void print_shell()
            "***********************\n\n");
 }
 
+void print_dir() 
+{
+    // Finds the current current working directory
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
+    printf("%s", cwd);
+}
+
+
 void handle_input(char input[256], char* strings[], size_t size)
 { 
     int i = 0;
@@ -26,7 +35,7 @@ void handle_input(char input[256], char* strings[], size_t size)
         usr_input = strtok(NULL, " ");
     }
 
-    // Handles if the path contains "\n"
+    // Handles if the argument contains "\n"
     strtok(data[1], "\n");   // Cleaner way to handle this: https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
 
     if (strcmp(data[0], "cd") == 0)
@@ -37,8 +46,8 @@ void handle_input(char input[256], char* strings[], size_t size)
             return;
         }
 
-        printf("\nDir tastet inn: %s", data[1]);
-        printf("rikitg\n");
+        printf("Dir: %s\n", data[1]);
+        printf("Correct\n");
         chdir(data[1]); // Changes the dir to the one stored in data[1]
     }
 
@@ -61,16 +70,19 @@ void syscmd_exec(char **command)
     }
     else if (pid == 0)
     {
-        printf("child");
+        printf("In child\n");
+
         if (execvp(command[0], command) < 0)
         {
-            printf("The command coudl not be executed.\n");
+            printf("The command could not be executed.\n");
         }
         else {
-           int status;
+            int status;
 
+            printf("I am in the else\n");
+            
             if(waitpid(pid, &status, 0) == -1) {
-                printf("Waitpid failed");
+                printf("Waitpid failed.\n");
                 exit(EXIT_FAILURE);
             }
             if ( WIFEXITED(status) ) {
@@ -89,18 +101,24 @@ void syscmd_exec(char **command)
 
 int main()
 {
-    // Finds the current current working directory
-    char path[200];
-    getcwd(path, 200);
-
     char input_str[256];
+    char *handeled_input[3];
 
-    // print_shell();
+    while (1) {
+        print_dir();
+        printf(": ");
+        fgets(input_str, 256, stdin);
 
-    printf("%s: ", path);
-    fgets(input_str, 256, stdin);
+        handle_input(input_str, handeled_input, sizeof(handeled_input));
 
-    handle_input(input_str);
+        if (strcmp(handeled_input[0], "cd") != 0)
+            syscmd_exec(handeled_input);
+    }
+
+    // char* argument_list[] = {"/bin/echo", "test", NULL};
+
+    // if (execvp("/bin/echo", argument_list) < 0)
+    //     printf("could not do it");
 
     return 0;
 }
