@@ -55,45 +55,38 @@ void handle_input(char input[256], char* strings[], size_t size)
     {
         strings[0] = data[0];
         strings[1] = data[1];
-        //strings[3] = NULL;
+        strings[3] = NULL;
     }
 }
 
 void syscmd_exec(char **command)
 {
     pid_t pid = fork();
-
-    // for (int i = 0; i < 3; i++) {
-    //     printf(":%s, %d\n", command[i], i);
-    // }
-
+    
     if (pid < 0)
     {
         printf("Could not fork a child.\n");
         return;
     }
+    else if (pid > 0)
+    {
+        int status;
+            
+        if (waitpid(pid, &status, 0) == -1) 
+        {
+            printf("Waitpid failed.\n");
+            exit(EXIT_FAILURE);
+        }
+        if (WIFEXITED(status)) 
+        {
+            int es = WEXITSTATUS(status);
+            printf("Exit status was %d\n", es);
+        }
+    }
     else if (pid == 0)
     {
-        printf("In child\n");
-
-        if (execvp(command[0], command) < 0)
-        {
-            printf("The command could not be executed.\n");
-        }
-        else {
-            int status;
-
-            printf("I am in the else\n");
-            
-            if(waitpid(pid, &status, 0) == -1) {
-                printf("Waitpid failed.\n");
-                exit(EXIT_FAILURE);
-            }
-            if ( WIFEXITED(status) ) {
-                int es = WEXITSTATUS(status);
-                printf("Exit status was %d\n", es);
-            }
-        }
+        execvp(command[0], command);
+        printf("The command could not be executed.\n");
         exit(0);
     }
     else
@@ -108,7 +101,8 @@ int main()
     char input_str[256];
     char *handeled_input[3];
 
-    while (1) {
+    while (1) 
+    {
         print_dir();
         printf(": ");
         fgets(input_str, 256, stdin);
