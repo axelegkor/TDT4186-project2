@@ -109,10 +109,6 @@ int main()
 
         handle_input(input_str, handeled_input, sizeof(handeled_input));
 
-        // for (int i = 0; i < 3; i++) {
-        //     printf("h:%s, %d\n", handeled_input[i], i);
-        // }
-
         if (strcmp(handeled_input[0], "cd") != 0)
             syscmd_exec(handeled_input);
     }
