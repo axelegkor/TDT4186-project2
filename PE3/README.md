@@ -47,3 +47,6 @@ else
 }
 ⋮
 ```
+
+## Comment from zoom
+Vi bruker open() og dup2() til å håndtere redirect, men får av og til «permission denied» som feilmelding. Vi har int fd = open(outputRedirectPath, O_RDWR | O_CLOEXEC).  Vi får altså av og til lov til å skrive til filen og av og til ikke. Er det noen flagg som mangler, eller er dette noe vi kan se bort fra? Kan det eventuelt komme av at filen ikke blir lukket ordentlig før en ny prosess prøver å skrive?
