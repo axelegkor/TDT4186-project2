@@ -7,6 +7,7 @@
 #define BUFFER_SIZE 256
 #define ARGS_BUFFER 15
 
+// The input from user splitted on spaces
 char *handeled_input[ARGS_BUFFER];
 
 void print_shell()
@@ -89,7 +90,7 @@ void syscmd_exec(char **command)
         if (WIFEXITED(status)) 
         {
             int es = WEXITSTATUS(status);
-            printf("Exit status was %d\n", es);
+            printf("Exit status [] = %d\n", es);
         }
     }
     else if (pid == 0)
@@ -109,6 +110,9 @@ int main()
 {
     char input_str[BUFFER_SIZE];
 
+    printf("\033[0;33m");
+    print_shell();
+    
     while (1) 
     {
         printf("\033[1;32m");
@@ -120,9 +124,9 @@ int main()
 
         handle_input(input_str);
 
-        // if (strcmp(handeled_input[0], "cd") == 0)
-        //     handle_cd(handeled_input);
-        // else
+        if (strcmp(handeled_input[0], "cd") == 0)
+            handle_cd(handeled_input);
+        else
             syscmd_exec(handeled_input);
     }
 
