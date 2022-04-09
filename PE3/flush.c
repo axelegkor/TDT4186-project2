@@ -5,8 +5,9 @@
 #include <sys/wait.h>
 
 #define BUFFER_SIZE 256
+#define ARGS_BUFFER 15
 
-char *handeled_input[BUFFER_SIZE];
+char *handeled_input[ARGS_BUFFER];
 
 void print_shell()
 {
@@ -41,39 +42,29 @@ void handle_cd(char *handled_input[])
     }
 }
 
-void handle_input(char input[BUFFER_SIZE])
-{ 
+void handle_input(char input[ARGS_BUFFER])
+{
     int i = 0;
-    char *usr_input = strtok(input, " ");
-    char *data[BUFFER_SIZE]; // Contains the input from the user, data[0]: commands and data[1]: arguments
+    char delim[] = " ";
+    char *ptr = strtok(input, delim);
 
-    while (usr_input)
+    while (ptr != NULL)
     {
-        data[i++] = usr_input;
-        usr_input = strtok(NULL, " ");
+        handeled_input[i++] = ptr;
+        ptr = strtok(NULL, delim);
     }
 
-    // Handles if the argument contains "\n"
-    strtok(data[1], "\n\r");   // Cleaner way to handle this: https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
-
-    int empty_index = 0;    
-    for (int x = 0; x < 255; x++)
+    for (int x = 0; x < ARGS_BUFFER; x++) 
     {
-        if (data[x] == NULL) 
-        {
-            empty_index = x;
+        strtok(handeled_input[x], "\n\r");
+    }
+
+    for (int p = 0; p < ARGS_BUFFER; p++){
+        if (handeled_input[p] == NULL) { 
+            printf("%d er NULL\n\n", p);
             break;
         }
-    }
-    
-    for (int q = 0; q < empty_index - 1; q++)
-    {
-        handeled_input[q] = data[q];
-    }
-    handeled_input[empty_index] = NULL;
-
-    for (int p = 0; p < 3; p++){
-        printf("%d: %s\n", p, handeled_input[p]);
+        printf(":%d -> %s:\n", p, handeled_input[p]);
     }
 }
 
@@ -120,15 +111,18 @@ int main()
 
     while (1) 
     {
+        printf("\033[1;32m");
         print_dir();
         printf(": ");
+        printf("\033[0m");
         fgets(input_str, BUFFER_SIZE, stdin);
+        // fflush(stdin);
 
         handle_input(input_str);
 
-        if (strcmp(handeled_input[0], "cd") == 0)
-            handle_cd(handeled_input);
-        else
+        // if (strcmp(handeled_input[0], "cd") == 0)
+        //     handle_cd(handeled_input);
+        // else
             syscmd_exec(handeled_input);
     }
 
