@@ -69,7 +69,23 @@ void handle_input(char input[ARGS_BUFFER])
     }
 }
 
-void syscmd_exec(char **command)
+/**
+ * 
+ * @return 1 if there are redirections (< or >), 0 otherwise
+ */
+int IO_redirection()
+{
+    for (int i = 0; i < ARGS_BUFFER; i++)
+    {
+        if (strcmp(handeled_input[i], ">"))
+            return 1;
+        if (strcmp(handeled_input[i], "<"))
+            return 1;
+    } 
+    return 0;
+}
+
+void syscmd_exec(char **command, char *input)
 {
     pid_t pid = fork();
     
@@ -95,6 +111,10 @@ void syscmd_exec(char **command)
     }
     else if (pid == 0)
     {
+        if (IO_redirection)
+        {
+            execl("/bin/sh", "/bin/sh", "-c", input, (char *)0);
+        }
         execvp(command[0], command);
         printf("The command could not be executed.\n");
         exit(0);
@@ -109,6 +129,7 @@ void syscmd_exec(char **command)
 int main()
 {
     char input_str[BUFFER_SIZE];
+    char input_str_copy[BUFFER_SIZE];
 
     printf("\033[0;33m");
     print_shell();
@@ -121,13 +142,14 @@ int main()
         printf("\033[0m");
         fgets(input_str, BUFFER_SIZE, stdin);
         // fflush(stdin);
+        strcpy(input_str_copy, input_str);
 
         handle_input(input_str);
 
         if (strcmp(handeled_input[0], "cd") == 0)
             handle_cd(handeled_input);
         else
-            syscmd_exec(handeled_input);
+            syscmd_exec(handeled_input, input_str_copy);
     }
 
     // char* argument_list[] = {"/bin/echo", "test", NULL};
