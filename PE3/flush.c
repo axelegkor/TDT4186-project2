@@ -5,7 +5,7 @@
 #include <sys/wait.h>
 
 #define BUFFER_SIZE 256
-#define ARGS_BUFFER 15
+#define ARGS_BUFFER 30
 
 // The input from user splitted on spaces
 char *handeled_input[ARGS_BUFFER];
