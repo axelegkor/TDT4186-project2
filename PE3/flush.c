@@ -15,7 +15,7 @@ void print_shell()
     printf("\n\n\n******************"
            "************************");
     printf("\n\n\n****The famous little unix shell****");
-    printf("\n\n\t-USE AT YOUR OWN RISK-");
+    printf("\n\n\t- USE AT YOUR OWN RISK :) -");
     printf("\n\n\n*******************"
            "***********************\n\n");
 }
@@ -111,9 +111,9 @@ void syscmd_exec(char **command, char *input)
     }
     else if (pid == 0)
     {
-        if (IO_redirection)
+        if (&IO_redirection)
         {
-            execl("/bin/sh", "/bin/sh", "-c", input, (char *)0);
+            execl("/bin/sh", "/bin/sh", "-c", input, NULL);
         }
         execvp(command[0], command);
         printf("The command could not be executed.\n");
@@ -131,7 +131,7 @@ int main()
     char input_str[BUFFER_SIZE];
     char input_str_copy[BUFFER_SIZE];
 
-    printf("\033[0;33m");
+    printf("\033[1;33m");
     print_shell();
     
     while (1) 
