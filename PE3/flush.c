@@ -11,6 +11,16 @@
 char *handeled_input[ARGS_BUFFER];
 char input_str_copy[BUFFER_SIZE];
 
+/**
+ * @brief Tuple for backrounf tasks
+ * 
+ */
+typedef struct tuple
+{
+    pid_t pid;
+    char command[BUFFER_SIZE];
+} tuple;
+
 void print_shell()
 {
     printf("\n\n\n******************"
@@ -83,6 +93,19 @@ int IO_redirection()
     return 0;
 }
 
+int check_backgroundtask()
+{
+    for (int x = 0; x < ARGS_BUFFER; x++){
+        if (handeled_input[x] == NULL) {             
+            if (strstr(handeled_input[x-1], "&"))
+            {
+                return 1;
+            }
+            return 0;
+        }
+    }
+}
+
 void syscmd_exec(char **command, char *input)
 {
     pid_t pid = fork();
@@ -94,6 +117,11 @@ void syscmd_exec(char **command, char *input)
     }
     else if (pid > 0)
     {
+        if (check_backgroundtask())
+        {
+            printf("bbbbbb\n");
+        }
+        else {
         int status;
             
         if (waitpid(pid, &status, 0) == -1) 
@@ -106,10 +134,11 @@ void syscmd_exec(char **command, char *input)
             int es = WEXITSTATUS(status);
             printf("Exit status [%s] = %d\n", input, es);
         }
+        }
     }
     else if (pid == 0)
     {
-        if (&IO_redirection)
+        if (IO_redirection())
         {
             execl("/bin/sh", "/bin/sh", "-c", input, NULL);
         }
@@ -121,6 +150,31 @@ void syscmd_exec(char **command, char *input)
     {
         wait(NULL);
         return;
+    }
+}
+
+void backgroundtask_exec(char **command, char *input)
+{
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        printf("Could not fork a child.\n");
+        return;
+    }
+    else if (pid > 0)
+    {
+        
+    }
+    else if (pid == 0)
+    {
+        if (IO_redirection())
+        {
+            execl("/bin/sh", "/bin/sh", "-c", input, NULL);
+        }
+        execvp(command[0], command);
+        printf("The command could not be executed.\n");
+        exit(0);
     }
 }
 
@@ -148,6 +202,7 @@ int main()
             handle_cd();
         else
             syscmd_exec(handeled_input, input_str_copy);
+        
     }
 
     // char* argument_list[] = {"/bin/echo", "test", NULL};
