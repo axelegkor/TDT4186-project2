@@ -12,14 +12,14 @@ char *handeled_input[ARGS_BUFFER];
 char input_str_copy[BUFFER_SIZE];
 
 /**
- * @brief Tuple for backrounf tasks
+ * @brief Tuple for background tasks
  * 
  */
-typedef struct tuple
+typedef struct background_tasks
 {
     pid_t pid;
     char command[BUFFER_SIZE];
-} tuple;
+} background_tasks;
 
 void print_shell()
 {
@@ -49,6 +49,28 @@ void handle_cd()
     printf("Dir: %s\n", handeled_input[1]);
     printf("Correct\n");
     chdir(handeled_input[1]); // Changes the dir to the one stored in data[1]
+}
+
+void add_backgroundtask(int pid, char *command)
+{
+    background_tasks *bt = malloc(sizeof(struct background_tasks));
+
+    bt->pid = pid;
+    *bt->command = command;
+}
+
+void print_backgroundtasks()
+{
+    struct background_tasks bt[3];
+    for (int z = 0; z < 2; z++) {
+        printf("%d pid: %d -> command: %s\n", z, bt->pid, bt->command);
+    }
+    // struct background_tasks *ptr = 0;
+    // while (ptr != NULL)
+    // {
+    //     printf("[pid %d] %s\n", ptr->pid, ptr->command);
+    //     ptr = ptr++;
+    // }
 }
 
 void handle_input(char input[ARGS_BUFFER])
@@ -119,23 +141,23 @@ void syscmd_exec(char **command, char *input)
     {
         if (check_backgroundtask())
         {
-            
+            add_backgroundtask(pid, input);
         }
 
         else 
         {
-        int status;
-            
-        if (waitpid(pid, &status, 0) == -1) 
-        {
-            printf("Waitpid failed.\n");
-            exit(EXIT_FAILURE);
-        }
-        if (WIFEXITED(status)) 
-        {
-            int es = WEXITSTATUS(status);
-            printf("Exit status [%s] = %d\n", input, es);
-        }
+            int status;
+                
+            if (waitpid(pid, &status, 0) == -1) 
+            {
+                printf("Waitpid failed.\n");
+                exit(EXIT_FAILURE);
+            }
+            if (WIFEXITED(status)) 
+            {
+                int es = WEXITSTATUS(status);
+                printf("Exit status [%s] = %d\n", input, es);
+            }
         }
     }
     else if (pid == 0)
@@ -175,11 +197,12 @@ int main()
 
         handle_input(input_str);
 
-        if (strcmp(handeled_input[0], "cd") == 0)
+        if (strcmp(handeled_input[0], "jobs") == 0)
+            print_backgroundtasks();
+        else if (strcmp(handeled_input[0], "cd") == 0)
             handle_cd();
         else
             syscmd_exec(handeled_input, input_str_copy);
-        
     }
 
     // char* argument_list[] = {"/bin/echo", "test", NULL};
