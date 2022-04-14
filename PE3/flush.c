@@ -15,11 +15,13 @@ char input_str_copy[BUFFER_SIZE];
  * @brief Tuple for background tasks
  * 
  */
-typedef struct background_tasks
-{
+typedef struct node_t {
     pid_t pid;
-    char command[BUFFER_SIZE];
+    //char *command;
+    struct node_t *next;
 } background_tasks;
+
+background_tasks *head = NULL;
 
 void print_shell()
 {
@@ -39,6 +41,28 @@ void print_dir()
     printf("%s", cwd);
 }
 
+int get_zombie_status(int PID) {
+    int stat;
+    if (waitpid(PID, &stat, WNOHANG))
+    {
+        if (WIFEXITED(stat))
+        {
+            return WEXITSTATUS(stat);
+        }
+    }
+    return -1;
+}
+
+/* Add a new node to linked list */
+background_tasks * add_background_task(pid_t pid, background_tasks *head) {
+    background_tasks *new_node;
+    new_node = (background_tasks *) malloc(sizeof(background_tasks));
+    new_node->pid = pid;
+    new_node->next= head;
+    head = new_node;
+    return head;
+}
+
 void handle_cd()
 {
     if (strlen(handeled_input[1]) == 0)
@@ -51,26 +75,12 @@ void handle_cd()
     chdir(handeled_input[1]); // Changes the dir to the one stored in data[1]
 }
 
-void add_backgroundtask(int pid, char *command)
-{
-    background_tasks *bt = malloc(sizeof(struct background_tasks));
-
-    bt->pid = pid;
-    *bt->command = command;
-}
-
-void print_backgroundtasks()
-{
-    struct background_tasks bt[3];
-    for (int z = 0; z < 2; z++) {
-        printf("%d pid: %d -> command: %s\n", z, bt->pid, bt->command);
+void print_active_tasks(background_tasks *head) {
+    background_tasks *current_node = head;
+   	while ( current_node != NULL) {
+        printf("%d ", current_node->pid);
+        current_node = current_node->next;
     }
-    // struct background_tasks *ptr = 0;
-    // while (ptr != NULL)
-    // {
-    //     printf("[pid %d] %s\n", ptr->pid, ptr->command);
-    //     ptr = ptr++;
-    // }
 }
 
 void handle_input(char input[ARGS_BUFFER])
@@ -141,9 +151,8 @@ void syscmd_exec(char **command, char *input)
     {
         if (check_backgroundtask())
         {
-            add_backgroundtask(pid, input);
+            head = add_background_task(pid, head);
         }
-
         else 
         {
             int status;
@@ -159,6 +168,7 @@ void syscmd_exec(char **command, char *input)
                 printf("Exit status [%s] = %d\n", input, es);
             }
         }
+        print_active_tasks(head);
     }
     else if (pid == 0)
     {   
@@ -176,6 +186,15 @@ void syscmd_exec(char **command, char *input)
         return;
     }
 }
+
+/*
+void print_zombie_tasks(Node *head) {
+    Node *current_node = head;
+   	while ( current_node != NULL) {
+        printf("%d ", current_node->data);
+        current_node = current_node->next;
+}
+*/
 
 int main()
 {
@@ -198,7 +217,7 @@ int main()
         handle_input(input_str);
 
         if (strcmp(handeled_input[0], "jobs") == 0)
-            print_backgroundtasks();
+            printf("hei");
         else if (strcmp(handeled_input[0], "cd") == 0)
             handle_cd();
         else
