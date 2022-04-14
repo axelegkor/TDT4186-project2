@@ -115,13 +115,15 @@ void syscmd_exec(char **command, char *input)
         printf("Could not fork a child.\n");
         return;
     }
-    else if (pid > 0)
+    if (pid > 0)
     {
         if (check_backgroundtask())
         {
-            printf("bbbbbb\n");
+            
         }
-        else {
+
+        else 
+        {
         int status;
             
         if (waitpid(pid, &status, 0) == -1) 
@@ -137,7 +139,7 @@ void syscmd_exec(char **command, char *input)
         }
     }
     else if (pid == 0)
-    {
+    {   
         if (IO_redirection())
         {
             execl("/bin/sh", "/bin/sh", "-c", input, NULL);
@@ -150,31 +152,6 @@ void syscmd_exec(char **command, char *input)
     {
         wait(NULL);
         return;
-    }
-}
-
-void backgroundtask_exec(char **command, char *input)
-{
-    pid_t pid = fork();
-
-    if (pid < 0)
-    {
-        printf("Could not fork a child.\n");
-        return;
-    }
-    else if (pid > 0)
-    {
-        
-    }
-    else if (pid == 0)
-    {
-        if (IO_redirection())
-        {
-            execl("/bin/sh", "/bin/sh", "-c", input, NULL);
-        }
-        execvp(command[0], command);
-        printf("The command could not be executed.\n");
-        exit(0);
     }
 }
 
