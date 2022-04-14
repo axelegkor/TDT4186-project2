@@ -9,6 +9,7 @@
 
 // The input from user splitted on spaces
 char *handeled_input[ARGS_BUFFER];
+char input_str_copy[BUFFER_SIZE];
 
 void print_shell()
 {
@@ -103,7 +104,7 @@ void syscmd_exec(char **command, char *input)
         if (WIFEXITED(status)) 
         {
             int es = WEXITSTATUS(status);
-            printf("Exit status [] = %d\n", es);
+            printf("Exit status [%s] = %d\n", input_str_copy, es);
         }
     }
     else if (pid == 0)
@@ -126,7 +127,6 @@ void syscmd_exec(char **command, char *input)
 int main()
 {
     char input_str[BUFFER_SIZE];
-    char input_str_copy[BUFFER_SIZE];
 
     printf("\033[1;33m");
     print_shell();
@@ -139,7 +139,8 @@ int main()
         printf("\033[0m");
         fgets(input_str, BUFFER_SIZE, stdin);
         // fflush(stdin);
-        strcpy(input_str_copy, input_str);
+        strcpy(input_str_copy, input_str);     // Cpies the string taken from the user to be printed in Ecit status
+        strtok(input_str_copy, "\n\r");        // Removes any unawanted space-like characters
 
         handle_input(input_str);
 
