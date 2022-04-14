@@ -21,6 +21,7 @@ typedef struct node_t {
     struct node_t *next;
 } background_tasks;
 
+
 background_tasks *head = NULL;
 
 void print_shell()
@@ -41,7 +42,7 @@ void print_dir()
     printf("%s", cwd);
 }
 
-int get_zombie_status(int PID) {
+int get_status(pid_t PID) {
     int stat;
     if (waitpid(PID, &stat, WNOHANG))
     {
@@ -78,7 +79,27 @@ void handle_cd()
 void print_active_tasks(background_tasks *head) {
     background_tasks *current_node = head;
    	while ( current_node != NULL) {
-        printf("%d ", current_node->pid);
+        int status = get_status(current_node->pid);
+        if(status != -1) {
+            printf("\nActive: %d, status: %d\n",current_node->pid, status);
+        } 
+        current_node = current_node->next;
+    }
+}
+
+void print_zombie_tasks(background_tasks *head) {
+    background_tasks *current_node = head;
+   	while ( current_node != NULL) {
+        int status = get_status(current_node->pid);
+        if(status == -1) {
+            printf("\nZombie: %d, status: %d\n",current_node->pid, status);
+        }
+        /*
+        if(get_status(current_node->pid) == -1) {
+            //printf("Zombie: %d, status: %d\n",current_node->pid, get_status(current_node->pid));
+
+        }
+        */
         current_node = current_node->next;
     }
 }
@@ -168,7 +189,7 @@ void syscmd_exec(char **command, char *input)
                 printf("Exit status [%s] = %d\n", input, es);
             }
         }
-        print_active_tasks(head);
+        print_zombie_tasks(head);
     }
     else if (pid == 0)
     {   
@@ -217,7 +238,7 @@ int main()
         handle_input(input_str);
 
         if (strcmp(handeled_input[0], "jobs") == 0)
-            printf("hei");
+            print_active_tasks(head);
         else if (strcmp(handeled_input[0], "cd") == 0)
             handle_cd();
         else
