@@ -28,19 +28,16 @@ void print_dir()
     printf("%s", cwd);
 }
 
-void handle_cd(char *handled_input[])
+void handle_cd()
 {
-    if (strcmp(handled_input[0], "cd") == 0)
+    if (strlen(handeled_input[1]) == 0)
     {
-        if (strlen(handled_input[1]) == 0)
-        {
-            printf("The path is empty.\n");
-            return;
-        }
-        printf("Dir: %s\n", handled_input[1]);
-        printf("Correct\n");
-        chdir(handled_input[1]); // Changes the dir to the one stored in data[1]
+        printf("The path is empty.\n");
+        return;
     }
+    printf("Dir: %s\n", handeled_input[1]);
+    printf("Correct\n");
+    chdir(handeled_input[1]); // Changes the dir to the one stored in data[1]
 }
 
 void handle_input(char input[ARGS_BUFFER])
@@ -147,7 +144,7 @@ int main()
         handle_input(input_str);
 
         if (strcmp(handeled_input[0], "cd") == 0)
-            handle_cd(handeled_input);
+            handle_cd();
         else
             syscmd_exec(handeled_input, input_str_copy);
     }
