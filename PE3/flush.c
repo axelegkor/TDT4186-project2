@@ -104,7 +104,7 @@ void syscmd_exec(char **command, char *input)
         if (WIFEXITED(status)) 
         {
             int es = WEXITSTATUS(status);
-            printf("Exit status [%s] = %d\n", input_str_copy, es);
+            printf("Exit status [%s] = %d\n", input, es);
         }
     }
     else if (pid == 0)
@@ -139,7 +139,7 @@ int main()
         printf("\033[0m");
         fgets(input_str, BUFFER_SIZE, stdin);
         // fflush(stdin);
-        strcpy(input_str_copy, input_str);     // Cpies the string taken from the user to be printed in Ecit status
+        strcpy(input_str_copy, input_str);     // Copies the string taken from the user to be printed in Ecit status
         strtok(input_str_copy, "\n\r");        // Removes any unawanted space-like characters
 
         handle_input(input_str);
