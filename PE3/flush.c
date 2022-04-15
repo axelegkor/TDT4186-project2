@@ -54,7 +54,12 @@ int get_status(pid_t PID) {
     return -1;
 }
 
-/* Add a new node to linked list */
+/**
+ * @brief Adds a new node to linked list
+ * @param the pid of the node the head of list and command line
+ * @return the updated head
+ * 
+ */
 background_tasks * add_background_task(pid_t pid, background_tasks *head) {
     background_tasks *new_node;
     new_node = (background_tasks *) malloc(sizeof(background_tasks));
@@ -131,8 +136,9 @@ void handle_input(char input[ARGS_BUFFER])
 }
 
 /**
- * 
+ * @brief checks if there are any rediretions in the input string
  * @return 1 if there are redirections (< or >), 0 otherwise
+ * 
  */
 int IO_redirection()
 {
