@@ -256,9 +256,14 @@ int main()
         print_dir();
         printf(": ");
         printf("\033[0m");
-        fgets(input_str, BUFFER_SIZE, stdin);
-        // fflush(stdin);
-        strcpy(input_str_copy, input_str);     // Copies the string taken from the user to be printed in Ecit status
+        
+        if (fgets(input_str, BUFFER_SIZE, stdin) == NULL) 
+        {
+            printf("\nProgram was exited with EOF\n\n");        // Terminates program on control-D
+            break;
+        }
+
+        strcpy(input_str_copy, input_str);     // Copies the string taken from the user to be printed in Exit status
         strtok(input_str_copy, "\n\r");        // Removes any unawanted space-like characters
 
         handle_input(input_str);
