@@ -81,7 +81,6 @@ void handle_cd()
         printf("The path is empty.\n");
         return;
     }
-    printf("Dir: %s\n", handeled_input[1]);
     chdir(handeled_input[1]); // Changes the dir to the one stored in data[1]
 }
 
@@ -227,10 +226,10 @@ void syscmd_exec(char **command, char *input)
     }
     else if (pid == 0)
     {   
-        if (IO_redirection())
+        if (IO_redirection())                                       // Check if the user input containd any redirections
         {
-            execl("/bin/sh", "/bin/sh", "-c", input, NULL);
-        }
+            execl("/bin/sh", "/bin/sh", "-c", input, NULL);         // Exec(3) funtion that executes rederiatons and allows you to write multiple redireations of the same type
+        }                                                              
         execvp(command[0], command);
         printf("The command could not be executed.\n");
         exit(0);
