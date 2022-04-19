@@ -6,6 +6,7 @@
 
 #define BUFFER_SIZE 256
 #define ARGS_BUFFER 30
+#define MAX_LEN 1024
 
 // The input from user splitted on spaces
 char *handeled_input[ARGS_BUFFER];
@@ -21,9 +22,14 @@ typedef struct node_t {
     struct node_t *next;
 } background_tasks;
 
-
+// Keeps track of current head in linked list
 background_tasks *head = NULL;
 
+
+/**
+ * @brief prints unix shell information
+ * 
+ */
 void print_shell()
 {
     printf("\n\n\n******************"
@@ -34,6 +40,10 @@ void print_shell()
            "***********************\n\n");
 }
 
+/**
+ * @brief prints current directory 
+ * 
+ */
 void print_dir() 
 {
     // Finds the current current working directory
@@ -42,21 +52,11 @@ void print_dir()
     printf("%s", cwd);
 }
 
-int get_status(pid_t PID) {
-    int stat;
-    if (waitpid(PID, &stat, WNOHANG))
-    {
-        if (WIFEXITED(stat))
-        {
-            return WEXITSTATUS(stat);
-        }
-    }
-    return -1;
-}
-
 /**
  * @brief Adds a new node to linked list
- * @param the pid of the node the head of list and command line
+ * @param pid of the process to be executed
+ * @param command the command to be executed
+ * @param head the current head in the linked list
  * @return the updated head
  * 
  */
@@ -65,11 +65,16 @@ background_tasks * add_background_task(pid_t pid, char* command, background_task
     new_node = (background_tasks *) malloc(sizeof(background_tasks));
     new_node->pid = pid;
     new_node->next= head;
-    new_node->command = command;
+    new_node->command = malloc(sizeof(char)*MAX_LEN); 
+    strcpy(new_node->command, command);
     head = new_node;
     return head;
 }
 
+/**
+ * @brief changes directory to the given path
+ * 
+ */
 void handle_cd()
 {
     if (strlen(handeled_input[1]) == 0)
@@ -78,57 +83,58 @@ void handle_cd()
         return;
     }
     printf("Dir: %s\n", handeled_input[1]);
-    printf("Correct\n");
     chdir(handeled_input[1]); // Changes the dir to the one stored in data[1]
 }
 
+
+/**
+ * @brief prints all active processes
+ * 
+ */
 void print_all_tasks() {
     background_tasks *current_node = head;
-    printf("\n\n\n--- ALL tasks ---\n");
+    if(current_node != NULL) {
+        printf("\n\n--- ALL tasks ---");
+    }
    	while ( current_node != NULL) {
-        printf("PID: %d, status: %d\n",current_node->pid, get_status(current_node->pid));
+        printf("\nProcess ID: [%d] %s\n",current_node->pid, current_node->command);
         current_node = current_node->next;
     }
 }
 
-
-void print_zombie_tasks(background_tasks *head) {
-    background_tasks *current_node = head;
-    printf("--- zombie tasks ---\n");
-   	while ( current_node != NULL) {
-        int status = get_status(current_node->pid);
-        if(status == -1) {
-            printf("PID: %d\n",current_node->pid);
-        }
-        /*
-        if(get_status(current_node->pid) == -1) {
-            //printf("Zombie: %d, status: %d\n",current_node->pid, get_status(current_node->pid));
-
-        }
-        */
-        current_node = current_node->next;
-    }
-}
-
+/**
+ * @brief prints and removes executed processes
+ * @param head current head in the linked list
+ * @return updated head for the linked list
+ * 
+ */
 background_tasks * remove_and_print_zombie_tasks(background_tasks *head) {
     background_tasks *current_node = head;
     background_tasks *prev_node;
-    printf("\n--- ZOMBIES ---");
+    int status;
+    int PID;
     while ( current_node != NULL) {
-        if (get_status(current_node->pid) != -1) {
-            printf("\nExit status [%s] = %d", current_node->command, get_status(current_node->pid));
+        PID = waitpid(current_node->pid, &status, WNOHANG | WUNTRACED);
+        if (WIFEXITED(status))
+        {
+            printf("\nExit status [%s] = %d\n", current_node->command, WEXITSTATUS(status));
             if (current_node == head) {
                  head = current_node->next;
             } else {
                 prev_node->next = current_node->next;
             }
-        } 
+        }
         prev_node = current_node;
         current_node = current_node->next;
     }
     return(head);
 }
 
+/**
+ * @brief handles user input
+ * @param input the input to be handled
+ * 
+ */
 void handle_input(char input[ARGS_BUFFER])
 {
     int i = 0;
@@ -144,14 +150,6 @@ void handle_input(char input[ARGS_BUFFER])
     for (int x = 0; x < ARGS_BUFFER; x++) 
     {
         strtok(handeled_input[x], "\n\r");
-    }
-
-    for (int p = 0; p < ARGS_BUFFER; p++){
-        if (handeled_input[p] == NULL) { 
-            printf("%d er NULL\n\n", p);
-            break;
-        }
-        printf(":%d -> %s:\n", p, handeled_input[p]);
     }
 }
 
@@ -172,6 +170,11 @@ int IO_redirection()
     return 0;
 }
 
+/**
+ * @brief checks if user adds a new background tasks
+ * @return 1 if there is a new background task, 0 otherwise
+ * 
+ */
 int check_backgroundtask()
 {
     for (int x = 0; x < ARGS_BUFFER; x++){
@@ -185,6 +188,12 @@ int check_backgroundtask()
     }
 }
 
+/**
+ * @brief executes process
+ * @param command the command to be executed
+ * @param input the user input
+ * 
+ */
 void syscmd_exec(char **command, char *input)
 {
     pid_t pid = fork();
@@ -234,15 +243,6 @@ void syscmd_exec(char **command, char *input)
     }
 }
 
-/*
-void print_zombie_tasks(Node *head) {
-    Node *current_node = head;
-   	while ( current_node != NULL) {
-        printf("%d ", current_node->data);
-        current_node = current_node->next;
-}
-*/
-
 int main()
 {
     char input_str[BUFFER_SIZE];
@@ -264,16 +264,15 @@ int main()
         handle_input(input_str);
 
         if (strcmp(handeled_input[0], "jobs") == 0)
+        {
             print_all_tasks(head);
+            head = remove_and_print_zombie_tasks(head);
+        }
         else if (strcmp(handeled_input[0], "cd") == 0)
             handle_cd();
         else
             syscmd_exec(handeled_input, input_str_copy); 
     }
-    // char* argument_list[] = {"/bin/echo", "test", NULL};
-
-    // if (execvp("/bin/echo", argument_list) < 0)
-    //     printf("could not do it");
 
     return 0;
 }
