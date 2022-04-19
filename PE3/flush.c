@@ -81,23 +81,33 @@ void handle_cd()
     chdir(handeled_input[1]); // Changes the dir to the one stored in data[1]
 }
 
+void print_all_tasks() {
+    background_tasks *current_node = head;
+    printf("\n\n\n--- ALL tasks ---\n");
+   	while ( current_node != NULL) {
+        printf("PID: %d, status: %d\n",current_node->pid, get_status(current_node->pid));
+        current_node = current_node->next;
+    }
+}
 void print_active_tasks(background_tasks *head) {
     background_tasks *current_node = head;
+    printf("--- active tasks ---\n");
    	while ( current_node != NULL) {
         int status = get_status(current_node->pid);
         if(status != -1) {
-            printf("\nActive: %d, status: %d\n",current_node->pid, status);
-        } 
+            printf("PID: %d, status: %d\n",current_node->pid, status); 
+        }
         current_node = current_node->next;
     }
 }
 
 void print_zombie_tasks(background_tasks *head) {
     background_tasks *current_node = head;
+    printf("--- zombie tasks ---\n");
    	while ( current_node != NULL) {
         int status = get_status(current_node->pid);
         if(status == -1) {
-            printf("\nZombie: %d, status: %d\n",current_node->pid, status);
+            printf("PID: %d\n",current_node->pid);
         }
         /*
         if(get_status(current_node->pid) == -1) {
@@ -107,6 +117,24 @@ void print_zombie_tasks(background_tasks *head) {
         */
         current_node = current_node->next;
     }
+}
+
+background_tasks * remove_and_print_zombie_tasks(background_tasks *head) {
+    background_tasks *current_node = head;
+    background_tasks *prev_node;
+    while ( current_node != NULL) {
+        if (get_status(current_node->pid) != -1) {
+            printf("zombie: %d", current_node->pid);
+            if (current_node == head) {
+                 head = current_node->next;
+            } else {
+                prev_node->next = current_node->next;
+            }
+        } 
+        prev_node = current_node;
+        current_node = current_node->next;
+    }
+    return(head);
 }
 
 void handle_input(char input[ARGS_BUFFER])
@@ -195,7 +223,7 @@ void syscmd_exec(char **command, char *input)
                 printf("Exit status [%s] = %d\n", input, es);
             }
         }
-        print_zombie_tasks(head);
+        head = remove_and_print_zombie_tasks(head);
     }
     else if (pid == 0)
     {   
@@ -248,9 +276,10 @@ int main()
         else if (strcmp(handeled_input[0], "cd") == 0)
             handle_cd();
         else
-            syscmd_exec(handeled_input, input_str_copy);
+            syscmd_exec(handeled_input, input_str_copy); 
     }
 
+    print_all_tasks(head);
     // char* argument_list[] = {"/bin/echo", "test", NULL};
 
     // if (execvp("/bin/echo", argument_list) < 0)
