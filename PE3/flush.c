@@ -17,7 +17,7 @@ char input_str_copy[BUFFER_SIZE];
  */
 typedef struct node_t {
     pid_t pid;
-    //char *command;
+    char *command;
     struct node_t *next;
 } background_tasks;
 
@@ -60,11 +60,12 @@ int get_status(pid_t PID) {
  * @return the updated head
  * 
  */
-background_tasks * add_background_task(pid_t pid, background_tasks *head) {
+background_tasks * add_background_task(pid_t pid, char* command, background_tasks *head) {
     background_tasks *new_node;
     new_node = (background_tasks *) malloc(sizeof(background_tasks));
     new_node->pid = pid;
     new_node->next= head;
+    new_node->command = command;
     head = new_node;
     return head;
 }
@@ -89,17 +90,7 @@ void print_all_tasks() {
         current_node = current_node->next;
     }
 }
-void print_active_tasks(background_tasks *head) {
-    background_tasks *current_node = head;
-    printf("--- active tasks ---\n");
-   	while ( current_node != NULL) {
-        int status = get_status(current_node->pid);
-        if(status != -1) {
-            printf("PID: %d, status: %d\n",current_node->pid, status); 
-        }
-        current_node = current_node->next;
-    }
-}
+
 
 void print_zombie_tasks(background_tasks *head) {
     background_tasks *current_node = head;
@@ -122,9 +113,10 @@ void print_zombie_tasks(background_tasks *head) {
 background_tasks * remove_and_print_zombie_tasks(background_tasks *head) {
     background_tasks *current_node = head;
     background_tasks *prev_node;
+    printf("\n--- ZOMBIES ---");
     while ( current_node != NULL) {
         if (get_status(current_node->pid) != -1) {
-            printf("zombie: %d", current_node->pid);
+            printf("\nExit status [%s] = %d", current_node->command, get_status(current_node->pid));
             if (current_node == head) {
                  head = current_node->next;
             } else {
@@ -206,7 +198,7 @@ void syscmd_exec(char **command, char *input)
     {
         if (check_backgroundtask())
         {
-            head = add_background_task(pid, head);
+            head = add_background_task(pid, input, head);
         }
         else 
         {
@@ -272,14 +264,12 @@ int main()
         handle_input(input_str);
 
         if (strcmp(handeled_input[0], "jobs") == 0)
-            print_active_tasks(head);
+            print_all_tasks(head);
         else if (strcmp(handeled_input[0], "cd") == 0)
             handle_cd();
         else
             syscmd_exec(handeled_input, input_str_copy); 
     }
-
-    print_all_tasks(head);
     // char* argument_list[] = {"/bin/echo", "test", NULL};
 
     // if (execvp("/bin/echo", argument_list) < 0)
